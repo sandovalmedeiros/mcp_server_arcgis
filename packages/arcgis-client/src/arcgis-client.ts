@@ -16,7 +16,13 @@ import {
   AttachmentMetadata,
   AttachmentMunicipalMetadata,
   DominiosResponse,
-  DomainType
+  DomainType,
+  Tema,
+  Escala,
+  Ano,
+  ClasseMapa,
+  Regiao,
+  Municipio
 } from '@mcp-server/shared-types';
 import { PublicacaoQueryBuilder } from './queries/publicacao.query.js';
 import { PublicacaoMunicipalQueryBuilder } from './queries/publicacao-municipal.query.js';
@@ -253,6 +259,128 @@ export class ArcGISRESTClient implements IArcGISClient {
         error: error instanceof Error ? error.message : 'Unknown error'
       };
     }
+  }
+
+  // === Convenience Methods for Domains ===
+
+  async getTemas(): Promise<Tema[]> {
+    return this.getDomains('temas');
+  }
+
+  async getEscalas(): Promise<Escala[]> {
+    return this.getDomains('escalas');
+  }
+
+  async getAnos(): Promise<Ano[]> {
+    return this.getDomains('anos');
+  }
+
+  async getClasses(): Promise<ClasseMapa[]> {
+    return this.getDomains('classes');
+  }
+
+  async getRegioes(): Promise<Regiao[]> {
+    return this.getDomains('regioes');
+  }
+
+  async getMunicipios(options: { limit: number; offset: number }): Promise<Municipio[]> {
+    const filters: QueryFilters = {
+      outFields: ['*'],
+      resultOffset: options.offset,
+      resultRecordCount: options.limit
+    };
+    const results = await this.queryPublicacoesMunicipais(filters);
+    // Cast as Municipio[] since PublicacaoMunicipal has compatible fields
+    return results as unknown as Municipio[];
+  }
+
+  // === Convenience Methods for Attachments ===
+
+  async getAttachments(globalid: string, isMunicipal: boolean): Promise<any[]> {
+    if (isMunicipal) {
+      return this.listAttachmentsMunicipais(globalid);
+    }
+    return this.listAttachments(globalid);
+  }
+
+  async downloadPDF(
+    globalid: string,
+    attachmentId: number,
+    isMunicipal: boolean
+  ): Promise<Buffer | null> {
+    // Primeiro busca o objectId
+    const pub = isMunicipal
+      ? await this.getPublicacaoMunicipalByGlobalId(globalid)
+      : await this.getPublicacaoByGlobalId(globalid);
+
+    if (!pub) {
+      return null;
+    }
+
+    // Busca objectId
+    const objectIdUrl = isMunicipal
+      ? this.municipalQuery.buildUrl({
+          where: `globalid='${globalid}'`,
+          outFields: ['objectid']
+        })
+      : this.publicacaoQuery.buildUrl({
+          where: `globalid='${globalid}'`,
+          outFields: ['objectid']
+        });
+
+    const results = await this.executeQuery<any>(objectIdUrl, isMunicipal ? 't_publicacao_municipios' : 't_publicacao');
+    if (results.length === 0) {
+      return null;
+    }
+
+    const objectId = results[0].objectid;
+    const layer = isMunicipal ? 1 : 0;
+
+    // Download do attachment
+    const url = `${this.config.featureServerUrl}/${layer}/${objectId}/attachments/${attachmentId}`;
+
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), this.config.timeout);
+
+      const response = await request(url, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/pdf',
+        },
+        signal: controller.signal
+      } as any);
+
+      clearTimeout(timeoutId);
+
+      if (response.statusCode !== 200) {
+        return null;
+      }
+
+      // Converte stream para Buffer
+      const chunks: Buffer[] = [];
+      for await (const chunk of response.body) {
+        chunks.push(chunk);
+      }
+
+      return Buffer.concat(chunks);
+    } catch (error) {
+      console.error('[ArcGISClient] Erro ao fazer download de PDF:', error);
+      return null;
+    }
+  }
+
+  async isMunicipalGlobalId(globalid: string): Promise<boolean> {
+    // Tenta buscar em municipais
+    const municipal = await this.getPublicacaoMunicipalByGlobalId(globalid);
+    return municipal !== null;
+  }
+
+  async getPublicacaoByGlobalIdSafe(globalid: string, isMunicipal: boolean): Promise<Publicacao | PublicacaoMunicipal | null> {
+    if (isMunicipal) {
+      return this.getPublicacaoMunicipalByGlobalId(globalid);
+    }
+    return this.getPublicacaoByGlobalId(globalid);
   }
 
   // === Getters ===

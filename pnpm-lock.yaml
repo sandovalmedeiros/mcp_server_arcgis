@@ -88,6 +88,9 @@ importers:
       '@playwright/test':
         specifier: ^1.40.0
         version: 1.59.1
+      '@types/dotenv-safe':
+        specifier: ^9.1.0
+        version: 9.1.0(dotenv@17.4.2)
       '@types/node':
         specifier: ^20.10.0
         version: 20.19.39
@@ -1169,6 +1172,11 @@ packages:
 
   '@types/d3@7.4.3':
     resolution: {integrity: sha512-lZXZ9ckh5R8uiFVt8ogUNf+pIrK4EsWrx2Np75WvF/eTpJ0FMHNhjXk8CKEx/+gpHbNQyJWehbFaTvqmHWB3ww==}
+
+  '@types/dotenv-safe@9.1.0':
+    resolution: {integrity: sha512-cL9PCogrlu+uDtq3M9qvAs+G5rfHwx+untcZGzA3fX8++NVdg9f01zdA175h55TstsEFRogXMUObo6QDduc/5w==}
+    peerDependencies:
+      dotenv: '>=8.2.0'
 
   '@types/estree@1.0.8':
     resolution: {integrity: sha512-dWHzHa2WqEXI/O1E9OjrocMTKJl2mSrEolh1Iomrv6U+JuNwaHXsXx9bLu5gG7BUWFIN0skIQJQ/L1rIex4X6w==}
@@ -4465,6 +4473,11 @@ snapshots:
       '@types/d3-timer': 3.0.2
       '@types/d3-transition': 3.0.9
       '@types/d3-zoom': 3.0.8
+
+  '@types/dotenv-safe@9.1.0(dotenv@17.4.2)':
+    dependencies:
+      '@types/node': 20.19.39
+      dotenv: 17.4.2
 
   '@types/estree@1.0.8': {}
 

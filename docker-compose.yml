@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  mcp-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mapoteca-mcp-server
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ID=mcp-server-1
+      - NODE_ENV=production
+      - PORT=3000
+      - HOST=0.0.0.0
+      - LOG_LEVEL=info
+      - CORS_ORIGIN=*
+      - ARCGIS_FEATURE_SERVER_URL=${ARCGIS_FEATURE_SERVER_URL:-https://sampleserver6.arcgisonline.com/arcgis/rest/services/SampleWorldCities/FeatureServer}
+      - ARCGIS_MAP_SERVER_URL=${ARCGIS_MAP_SERVER_URL:-https://sampleserver6.arcgisonline.com/arcgis/rest/services/SampleWorldCities/MapServer}
+      - API_KEYS=${API_KEYS:-dev-key-12345}
+      - RAG_MAX_RESULTS=10
+      - RAG_THRESHOLD=0.5
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - mapoteca-network
+
+networks:
+  mapoteca-network:
+    driver: bridge
