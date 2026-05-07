@@ -19,7 +19,7 @@ import { domainsRoutes } from './routes/domains.routes.js';
 import { publicacaoRoutes } from './routes/publicacao.routes.js';
 import { authMiddleware } from './middleware/auth.middleware.js';
 import { errorHandler } from './middleware/error.middleware.js';
-import './types/fastify.d.js';
+import './types/index.js';
 
 /**
  * Cria e configura o servidor Fastify
@@ -27,15 +27,7 @@ import './types/fastify.d.js';
 async function createServer(): Promise<FastifyInstance> {
   const server = Fastify({
     logger: {
-      level: config.logLevel,
-      transport: {
-        target: 'pino-pretty',
-        options: {
-          colorize: true,
-          translateTime: 'HH:MM:ss Z',
-          ignore: 'pid,hostname'
-        }
-      }
+      level: config.logLevel
     }
   });
 

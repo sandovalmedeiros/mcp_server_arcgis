@@ -5,8 +5,20 @@
  */
 
 import dotenv from 'dotenv-safe';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-dotenv.config();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Caminho para a raiz do projeto (3 níveis acima de packages/mcp-server/dist/config)
+const projectRoot = path.resolve(__dirname, '../../../../');
+
+dotenv.config({
+  example: path.join(projectRoot, '.env.example'),
+  path: path.join(projectRoot, '.env'),
+  allowEmptyValues: true
+});
 
 interface Config {
   // Server

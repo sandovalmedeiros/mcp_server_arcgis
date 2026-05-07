@@ -1,35 +1,24 @@
-# ========================================
-# Stage 1: Build
-# ========================================
-FROM node:20-alpine AS builder
+# MCP Server - Single Stage Build
+FROM node:20-alpine
 
 WORKDIR /app
 
-# Install build dependencies
-RUN apk add --no-cache python3 make g++
+# Install build dependencies and pnpm
+RUN apk add --no-cache python3 make g++ curl && \
+    npm install -g pnpm
 
-# Copy package files
+# Copy all project files
 COPY package*.json ./
+COPY pnpm-lock.yaml ./
+COPY tsconfig.json ./
+COPY pnpm-workspace.yaml ./
 COPY packages packages/
 
-# Install dependencies and build
-RUN npm ci
-RUN npm run build
+# Install all dependencies
+RUN pnpm install --frozen-lockfile
 
-# ========================================
-# Stage 2: Production
-# ========================================
-FROM node:20-alpine AS production
-
-WORKDIR /app
-
-# Install runtime dependencies only
-RUN apk add --no-cache curl
-
-# Copy built files
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/packages ./packages
-COPY --from=builder /app/package*.json ./
+# Build the project
+RUN pnpm build
 
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs && \
