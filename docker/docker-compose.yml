@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  mcp-server:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.mcp-server
+    image: mcp-server:latest
+    container_name: mapoteca-mcp-server
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - SERVER_PORT=3000
+      - SERVER_HOST=0.0.0.0
+      - MCP_API_KEYS=${MCP_API_KEYS}
+      - ARCGIS_FEATURESERVER_URL=${ARCGIS_FEATURESERVER_URL}
+      - ARCGIS_MAPSERVER_URL=${ARCGIS_MAPSERVER_URL}
+      - ARCGIS_TIMEOUT_MS=30000
+      - RAG_STRATEGY_DEFAULT=hybrid
+      - RAG_MAX_RESULTS=100
+      - LOG_LEVEL=info
+      - RATE_LIMIT_REQUESTS_PER_MINUTE=100
+    networks:
+      - mapoteca-network
+    volumes:
+      - mcp-logs:/app/logs
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+
+networks:
+  mapoteca-network:
+    external: true
+    name: mapoteca-network
+
+volumes:
+  mcp-logs:
+    driver: local

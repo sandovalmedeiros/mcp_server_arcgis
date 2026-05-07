@@ -1,0 +1,42 @@
+{
+  "name": "@mcp-server/shared-types",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./publicacao": {
+      "types": "./dist/publicacao.types.d.ts",
+      "import": "./dist/publicacao.types.js"
+    },
+    "./publicacao-municipal": {
+      "types": "./dist/publicacao-municipal.types.d.ts",
+      "import": "./dist/publicacao-municipal.types.js"
+    },
+    "./attachment": {
+      "types": "./dist/attachment.types.d.ts",
+      "import": "./dist/attachment.types.js"
+    },
+    "./mcp-protocol": {
+      "types": "./dist/mcp-protocol.types.d.ts",
+      "import": "./dist/mcp-protocol.types.js"
+    },
+    "./domain": {
+      "types": "./dist/domain.types.d.ts",
+      "import": "./dist/domain.types.js"
+    },
+    "./error": {
+      "types": "./dist/error.types.d.ts",
+      "import": "./dist/error.types.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist"
+  }
+}
